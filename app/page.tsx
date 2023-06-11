@@ -140,11 +140,18 @@ export default function Home() {
         <div className="flex items-center gap-8 text-lg">
           <a
             href="https://github.com/portdeveloper/vanitoor"
+            target="_blank"
+            rel="noopener noreferrer"
             className="hover:underline"
           >
             Github
           </a>
-          <a href="https://twitter.com/port_dev" className="hover:underline">
+          <a
+            href="https://twitter.com/port_dev"
+            className="hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             Twitter
           </a>
         </div>
@@ -234,6 +241,8 @@ export default function Home() {
           Made with ❤️ by{" "}
           <a
             href="https://github.com/portdeveloper"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
             port

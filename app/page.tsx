@@ -1,13 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { ethers } from "ethers";
-
-const PROVIDER = new ethers.InfuraProvider("mainnet", process.env.INFURA_KEY);
-
-const ENS_REGISTRY_ADDRESS = "0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e";
-const ENS_REGISTRY_ABI = [
-  "function owner(bytes32 node) external view returns (address)",
-];
+import { checkEnsAvailability } from "../utils/ethService";
+import { initWorkers, terminateWorkers } from "../utils/workerService";
 
 export default function Home() {
   const [ensName, setEnsName] = useState("");
@@ -25,42 +19,33 @@ export default function Home() {
   const workerRef = useRef<Worker[] | null>(null);
   const [isPrivateKeyVisible, setIsPrivateKeyVisible] = useState(false);
 
-  const initWorkers = () => {
-    const numWorkers = 8;
-    const workers = Array.from({ length: numWorkers }, () => {
-      const worker = new Worker(
-        new URL("../utils/addressGenerator.worker.js", import.meta.url)
-      );
-      worker.onmessage = (event) => {
-        const { address, privateKey, count } = event.data;
-        if (address && privateKey) {
-          setVanityAddress(address);
-          setPrivateKey(privateKey);
-          setIsGenerating(false);
-          if (workerRef.current) {
-            workerRef.current.forEach((worker: Worker) => {
-              worker.terminate();
-            });
-            workerRef.current = null;
-          }
-        }
-        if (count) {
-          setNumGenerated((prevCount) => prevCount + count);
-        }
-      };
-      return worker;
-    });
-    workerRef.current = workers;
+  const onWorkerMessage = (event: MessageEvent) => {
+    const { address, privateKey, count } = event.data;
+    if (address && privateKey) {
+      setVanityAddress(address);
+      setPrivateKey(privateKey);
+      setIsGenerating(false);
+      if (workerRef.current) {
+        workerRef.current.forEach((worker: Worker) => {
+          worker.terminate();
+        });
+        workerRef.current = null;
+      }
+    }
+    if (count) {
+      setNumGenerated((prevCount) => prevCount + count);
+    }
+  };
+
+  const handleCheckEnsAvailability = async () => {
+    const { available, message } = await checkEnsAvailability(ensName);
+    setIsENSNameAvailable(available);
+    setMessage(message);
   };
 
   useEffect(() => {
-    initWorkers();
-
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.forEach((worker: Worker) => worker.terminate());
-      }
-    };
+    const workers = initWorkers(onWorkerMessage);
+    return () => terminateWorkers(workers);
   }, []);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,33 +55,6 @@ export default function Home() {
       setIsHexInput(true);
     } else {
       setIsHexInput(false);
-    }
-  };
-
-  const checkEnsAvailability = async () => {
-    if (!ensName) {
-      setMessage("ENS name cannot be empty.");
-      return;
-    }
-
-    const ensRegistry = new ethers.Contract(
-      ENS_REGISTRY_ADDRESS,
-      ENS_REGISTRY_ABI,
-      PROVIDER
-    );
-
-    const namehash = ethers.namehash(ensName + ".eth");
-    const owner = await ensRegistry.owner(namehash);
-
-    if (
-      owner === "0x0000000000000000000000000000000000000000" &&
-      ensName.length > 2
-    ) {
-      setIsENSNameAvailable(true);
-      setMessage("ENS name is available!");
-    } else {
-      setIsENSNameAvailable(false);
-      setMessage("ENS name is not available.");
     }
   };
 
@@ -110,7 +68,7 @@ export default function Home() {
       setTimeTaken(Date.now() - generateStartTime.current);
     }, 1000);
 
-    initWorkers(); // reinitialize the workers
+    workerRef.current = initWorkers(onWorkerMessage); // reinitialize the workers
 
     workerRef.current?.forEach((worker: Worker) => {
       worker.postMessage(ensName);
@@ -172,7 +130,7 @@ export default function Home() {
           )}
 
           <button
-            onClick={checkEnsAvailability}
+            onClick={handleCheckEnsAvailability}
             disabled={!isHexInput || !ensName}
             className="text-md mb-4 w-full rounded-md bg-gray-800 px-4 py-3 text-white disabled:opacity-50"
           >

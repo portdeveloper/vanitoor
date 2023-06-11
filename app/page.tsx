@@ -132,14 +132,21 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen flex-col bg-gray-100 px-6 py-2 font-serif">
+    <div className="flex h-screen flex-col bg-gray-100 px-6 py-4 font-serif">
       <div className="mb-8 flex justify-between">
         <h1 className="text-3xl font-bold text-gray-700">
-          Vanity-ENS <small className="text-2xl">(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧</small>
+          Vanitoor <small className="text-2xl">(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧</small>
         </h1>
         <div className="flex items-center gap-8 text-lg">
-          <p>Github</p>
-          <p>Twitter</p>
+          <a
+            href="https://github.com/portdeveloper/vanitoor"
+            className="hover:underline"
+          >
+            Github
+          </a>
+          <a href="https://twitter.com/port_dev" className="hover:underline">
+            Twitter
+          </a>
         </div>
       </div>
       <div className="flex flex-grow items-center justify-center font-sans">
@@ -226,7 +233,7 @@ export default function Home() {
           {" "}
           Made with ❤️ by{" "}
           <a
-            href="https://twitter.com/port_dev"
+            href="https://github.com/portdeveloper"
             className="text-blue-600 hover:underline"
           >
             port

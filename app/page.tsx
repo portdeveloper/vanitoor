@@ -65,7 +65,8 @@ export default function Home() {
     setNumGenerated(0);
     generateStartTime.current = Date.now();
     generatorInterval.current = setInterval(() => {
-      setTimeTaken(Date.now() - generateStartTime.current);
+      const timeDifference = Date.now() - generateStartTime.current;
+      setTimeTaken(Math.round(timeDifference / 1000));
     }, 1000);
 
     workerRef.current = initWorkers(onWorkerMessage); // reinitialize the workers
@@ -156,7 +157,7 @@ export default function Home() {
           {isGenerating && (
             <div className="mt-4">
               <p>Generated addresses: {numGenerated}</p>
-              <p>Time taken: {timeTaken / 1000} seconds</p>
+              <p>Time taken: {`${timeTaken} ${timeTaken > 1 ? "seconds" : "second"}`} </p>
             </div>
           )}
 
